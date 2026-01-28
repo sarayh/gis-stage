@@ -226,6 +226,16 @@ Utilisateur ──┬── Service ──── Stage ──┬── Document
 | GET | `/rapports/stages-refuses` | Stages refusés | Coordinatrice/DSI |
 | GET | `/rapports/rapport-services` | Rapport par service | Authentifié |
 
+### Données de Test (`/api/seed`)
+
+| Méthode | Endpoint | Description | Accès |
+|---------|----------|-------------|-------|
+| POST | `/seed/generate` | Générer un jeu de données complet | DSI |
+| DELETE | `/seed/reset?confirm=true` | Supprimer les données de test | DSI |
+| GET | `/seed/statistics` | Statistiques de la base | Authentifié |
+
+**Note**: Ces endpoints sont destinés au développement et aux démonstrations uniquement.
+
 ---
 
 ## 5. Authentification JWT

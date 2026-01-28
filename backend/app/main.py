@@ -9,7 +9,7 @@ from datetime import datetime
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api import auth, etudiants, stages, services, etablissements, documents, presences, rapports
+from app.api import auth, etudiants, stages, services, etablissements, documents, presences, rapports, seed
 
 
 @asynccontextmanager
@@ -96,6 +96,7 @@ app.include_router(etablissements.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 app.include_router(presences.router, prefix="/api")
 app.include_router(rapports.router, prefix="/api")
+app.include_router(seed.router, prefix="/api/seed", tags=["Données de test"])
 
 
 @app.get("/health")

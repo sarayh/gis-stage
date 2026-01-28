@@ -325,8 +325,84 @@ Suivi quotidien : PRESENT, ABSENT, ABSENT_JUSTIFIE, NON_RENSEIGNE
 | `GET /api/presences/stage/{id}` | Présences d'un stage |
 | `GET /api/rapports/statistiques-annuelles` | Statistiques |
 | `GET /api/rapports/export-csv` | Export CSV |
+| `POST /api/seed/generate` | Générer données de test (DSI) |
+| `GET /api/seed/statistics` | Statistiques base de données |
 
 Documentation API complète : `http://localhost:8080/docs`
+
+## Génération de Données de Test
+
+L'API inclut des endpoints pour générer un jeu de données de test complet, utile pour les démonstrations et les tests.
+
+### Générer les données
+
+```bash
+# Authentification (obtenir un token)
+TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"VotreMotDePasse"}' | jq -r '.access_token')
+
+# Générer les données de test (30 étudiants, 50 stages par défaut)
+curl -X POST "http://localhost:8080/api/seed/generate" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Générer avec paramètres personnalisés
+curl -X POST "http://localhost:8080/api/seed/generate?nb_etudiants=50&nb_stages=100" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Données générées
+
+L'endpoint `/api/seed/generate` crée :
+
+| Entité | Quantité | Description |
+|--------|----------|-------------|
+| **Services** | 15 | Médecine, Chirurgie, Urgences, Pédiatrie, etc. |
+| **Établissements** | 12 | IFSI, IFAS, Facultés de médecine, etc. |
+| **Enseignants** | 10 | Enseignants référents avec emails |
+| **Utilisateurs** | 5 | coordinatrice, cadre_med, cadre_chir, cadre_urg, dsi_test |
+| **Étudiants** | 30 (param) | Avec formations, établissements, représentants légaux |
+| **Stages** | 50 (param) | Distribution réaliste des statuts |
+| **Présences** | Auto | Pour les stages en cours et terminés |
+
+### Distribution des stages
+
+| Statut | Pourcentage | Description |
+|--------|-------------|-------------|
+| TERMINE | 25% | Stages passés |
+| EN_COURS | 15% | Stages actuels |
+| CONVENTIONNE | 15% | Convention signée, à venir |
+| VALIDE | 20% | Validés, en attente de convention |
+| BROUILLON | 10% | En cours de création |
+| REFUSE | 10% | Refusés avec motif |
+| ANNULE | 5% | Annulés |
+
+### Utilisateurs de test créés
+
+| Username | Rôle | Mot de passe |
+|----------|------|--------------|
+| `coordinatrice` | COORDINATRICE | (à définir) |
+| `cadre_med` | CADRE (Médecine) | (à définir) |
+| `cadre_chir` | CADRE (Chirurgie) | (à définir) |
+| `cadre_urg` | CADRE (Urgences) | (à définir) |
+| `dsi_test` | DSI | (à définir) |
+
+**Note** : Les utilisateurs de test sont créés sans mot de passe. Utilisez le script d'initialisation pour définir leurs mots de passe.
+
+### Réinitialiser les données
+
+```bash
+# Supprimer toutes les données de test (irréversible)
+curl -X DELETE "http://localhost:8080/api/seed/reset?confirm=true" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Voir les statistiques
+
+```bash
+curl "http://localhost:8080/api/seed/statistics" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
 ## Limites Système
 
