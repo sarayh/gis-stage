@@ -1,0 +1,1008 @@
+{
+  "info": {
+    "_postman_id": "gis-stage-collection-2026",
+    "name": "GIS-Stage API",
+    "description": "Collection complète de l'API GIS-Stage - Gestion des stages hospitaliers\n\n## Configuration\n1. Importer cette collection\n2. Importer l'environnement \"GIS-Stage Environment\"\n3. Sélectionner l'environnement\n4. Exécuter \"Login\" pour obtenir un token\n5. Le token est automatiquement sauvegardé dans les variables\n\n## Variables utilisées\n- `{{base_url}}` : URL de l'API\n- `{{access_token}}` : Token JWT (auto-rempli après login)\n- `{{refresh_token}}` : Token de rafraîchissement",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Endpoints d'authentification",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"access_token\", jsonData.access_token);",
+                  "    pm.environment.set(\"refresh_token\", jsonData.refresh_token);",
+                  "    console.log(\"Tokens saved to environment\");",
+                  "}",
+                  "",
+                  "pm.test(\"Login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Has access_token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('access_token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authentification et récupération du token JWT.\n\nLes tokens sont automatiquement sauvegardés dans les variables d'environnement."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"access_token\", jsonData.access_token);",
+                  "    if (jsonData.refresh_token) {",
+                  "        pm.environment.set(\"refresh_token\", jsonData.refresh_token);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test(\"Token refreshed\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Rafraîchit le token d'accès expiré."
+          }
+        },
+        {
+          "name": "Get Current User (Me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Retourne les informations de l'utilisateur connecté."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Déconnexion de l'utilisateur."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stages",
+      "description": "Gestion des stages",
+      "item": [
+        {
+          "name": "List Stages",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stages?skip=0&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["stages"],
+              "query": [
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "20"},
+                {"key": "service_id", "value": "", "disabled": true},
+                {"key": "etablissement_id", "value": "", "disabled": true},
+                {"key": "statut", "value": "", "disabled": true},
+                {"key": "search", "value": "", "disabled": true},
+                {"key": "annee", "value": "", "disabled": true}
+              ]
+            },
+            "description": "Liste des stages avec filtres optionnels."
+          }
+        },
+        {
+          "name": "Get Stage by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Has stage ID\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stages/{{stage_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stages", "{{stage_id}}"]
+            },
+            "description": "Détail d'un stage par son ID."
+          }
+        },
+        {
+          "name": "Create Stage",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"stage_id\", jsonData.id);",
+                  "    console.log(\"Stage ID saved: \" + jsonData.id);",
+                  "}",
+                  "",
+                  "pm.test(\"Stage created\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"etudiant_id\": {{etudiant_id}},\n    \"service_id\": {{service_id}},\n    \"etablissement_id\": {{etablissement_id}},\n    \"enseignant_referent_id\": {{enseignant_id}},\n    \"formation\": \"Infirmier (IFSI)\",\n    \"date_debut\": \"2026-03-01\",\n    \"date_fin\": \"2026-04-30\",\n    \"nombre_semaines\": 8,\n    \"commentaire\": \"Stage de découverte\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stages",
+              "host": ["{{base_url}}"],
+              "path": ["stages"]
+            },
+            "description": "Création d'un nouveau stage.\n\nLe stage_id est automatiquement sauvegardé après création."
+          }
+        },
+        {
+          "name": "Update Stage",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"commentaire\": \"Commentaire mis à jour\",\n    \"statut\": \"valide\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stages/{{stage_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stages", "{{stage_id}}"]
+            },
+            "description": "Modification d'un stage existant."
+          }
+        },
+        {
+          "name": "Change Stage Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"statut\": \"valide\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stages/{{stage_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stages", "{{stage_id}}"]
+            },
+            "description": "Changement de statut d'un stage.\n\nStatuts possibles: brouillon, valide, conventionne, en_cours, termine, annule, refuse"
+          }
+        },
+        {
+          "name": "Refuse Stage",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"statut\": \"refuse\",\n    \"motif_refus\": \"Pas de place disponible dans le service\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stages/{{stage_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stages", "{{stage_id}}"]
+            },
+            "description": "Refuser un stage avec un motif obligatoire."
+          }
+        },
+        {
+          "name": "Delete Stage",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stages/{{stage_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stages", "{{stage_id}}"]
+            },
+            "description": "Suppression logique d'un stage."
+          }
+        },
+        {
+          "name": "Get Calendar by Service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stages/calendrier/service/{{service_id}}?mois=3&annee=2026",
+              "host": ["{{base_url}}"],
+              "path": ["stages", "calendrier", "service", "{{service_id}}"],
+              "query": [
+                {"key": "mois", "value": "3"},
+                {"key": "annee", "value": "2026"}
+              ]
+            },
+            "description": "Calendrier des stages pour un service donné."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Etudiants",
+      "description": "Gestion des étudiants",
+      "item": [
+        {
+          "name": "List Etudiants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/etudiants?skip=0&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["etudiants"],
+              "query": [
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "20"},
+                {"key": "search", "value": "", "disabled": true},
+                {"key": "etablissement_id", "value": "", "disabled": true},
+                {"key": "formation", "value": "", "disabled": true}
+              ]
+            },
+            "description": "Liste des étudiants avec filtres optionnels."
+          }
+        },
+        {
+          "name": "Get Etudiant by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/etudiants/{{etudiant_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["etudiants", "{{etudiant_id}}"]
+            },
+            "description": "Détail d'un étudiant par son ID."
+          }
+        },
+        {
+          "name": "Get Etudiant by Code EGIS",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/etudiants/code/{{code_egis}}",
+              "host": ["{{base_url}}"],
+              "path": ["etudiants", "code", "{{code_egis}}"]
+            },
+            "description": "Recherche d'un étudiant par son code EGIS."
+          }
+        },
+        {
+          "name": "Create Etudiant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"etudiant_id\", jsonData.id);",
+                  "    pm.environment.set(\"code_egis\", jsonData.code_egis);",
+                  "    console.log(\"Etudiant created: \" + jsonData.code_egis);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nom\": \"Dupont\",\n    \"prenom\": \"Marie\",\n    \"date_naissance\": \"2000-05-15\",\n    \"lieu_naissance\": \"Rouen\",\n    \"email\": \"marie.dupont@email.com\",\n    \"telephone\": \"0612345678\",\n    \"adresse\": \"12 rue de la République, 76000 Rouen\",\n    \"formation\": \"Infirmier (IFSI)\",\n    \"etablissement_id\": {{etablissement_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/etudiants",
+              "host": ["{{base_url}}"],
+              "path": ["etudiants"]
+            },
+            "description": "Création d'un nouvel étudiant.\n\nLe code EGIS est généré automatiquement."
+          }
+        },
+        {
+          "name": "Update Etudiant",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"nouveau.email@email.com\",\n    \"telephone\": \"0698765432\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/etudiants/{{etudiant_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["etudiants", "{{etudiant_id}}"]
+            },
+            "description": "Modification d'un étudiant existant."
+          }
+        },
+        {
+          "name": "Delete Etudiant",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/etudiants/{{etudiant_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["etudiants", "{{etudiant_id}}"]
+            },
+            "description": "Suppression logique d'un étudiant."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "description": "Gestion des documents",
+      "item": [
+        {
+          "name": "List Documents by Stage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/documents/stage/{{stage_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["documents", "stage", "{{stage_id}}"]
+            },
+            "description": "Liste des documents d'un stage."
+          }
+        },
+        {
+          "name": "Upload Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"document_id\", jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "stage_id",
+                  "value": "{{stage_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "type_document",
+                  "value": "convention",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/documents",
+              "host": ["{{base_url}}"],
+              "path": ["documents"]
+            },
+            "description": "Upload d'un document.\n\nTypes: convention, evaluation, vaccination, attestation, autre\nMax: 5 Mo, formats PDF/DOC/DOCX/JPG/PNG"
+          }
+        },
+        {
+          "name": "Download Document",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/documents/{{document_id}}/download",
+              "host": ["{{base_url}}"],
+              "path": ["documents", "{{document_id}}", "download"]
+            },
+            "description": "Téléchargement d'un document."
+          }
+        },
+        {
+          "name": "Validate Document",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/documents/{{document_id}}/validate",
+              "host": ["{{base_url}}"],
+              "path": ["documents", "{{document_id}}", "validate"]
+            },
+            "description": "Valider un document."
+          }
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["documents", "{{document_id}}"]
+            },
+            "description": "Suppression d'un document."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Presences",
+      "description": "Gestion des présences",
+      "item": [
+        {
+          "name": "List Presences by Stage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/presences/stage/{{stage_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["presences", "stage", "{{stage_id}}"]
+            },
+            "description": "Liste des présences d'un stage."
+          }
+        },
+        {
+          "name": "Create/Update Presence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"stage_id\": {{stage_id}},\n    \"date_presence\": \"2026-03-15\",\n    \"etat\": \"present\",\n    \"commentaire\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/presences",
+              "host": ["{{base_url}}"],
+              "path": ["presences"]
+            },
+            "description": "Création ou mise à jour d'une présence.\n\nÉtats: present, absent, absent_justifie, non_renseigne"
+          }
+        },
+        {
+          "name": "Bulk Update Presences",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"presences\": [\n        {\n            \"stage_id\": {{stage_id}},\n            \"date_presence\": \"2026-03-15\",\n            \"etat\": \"present\"\n        },\n        {\n            \"stage_id\": {{stage_id}},\n            \"date_presence\": \"2026-03-16\",\n            \"etat\": \"present\"\n        },\n        {\n            \"stage_id\": {{stage_id}},\n            \"date_presence\": \"2026-03-17\",\n            \"etat\": \"absent_justifie\",\n            \"commentaire\": \"Maladie\"\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/presences/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["presences", "bulk"]
+            },
+            "description": "Mise à jour en masse des présences.\n\nMax 500 présences par requête."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "description": "Gestion des services hospitaliers",
+      "item": [
+        {
+          "name": "List Services",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Save first service ID for later use",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.length > 0) {",
+                  "    pm.environment.set(\"service_id\", jsonData[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/services",
+              "host": ["{{base_url}}"],
+              "path": ["services"]
+            },
+            "description": "Liste de tous les services hospitaliers."
+          }
+        },
+        {
+          "name": "Get Service by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/services/{{service_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["services", "{{service_id}}"]
+            },
+            "description": "Détail d'un service."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Etablissements",
+      "description": "Gestion des établissements partenaires",
+      "item": [
+        {
+          "name": "List Etablissements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Save first etablissement ID for later use",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.length > 0) {",
+                  "    pm.environment.set(\"etablissement_id\", jsonData[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/etablissements",
+              "host": ["{{base_url}}"],
+              "path": ["etablissements"]
+            },
+            "description": "Liste de tous les établissements partenaires."
+          }
+        },
+        {
+          "name": "Get Etablissement by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/etablissements/{{etablissement_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["etablissements", "{{etablissement_id}}"]
+            },
+            "description": "Détail d'un établissement."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rapports",
+      "description": "Statistiques et rapports",
+      "item": [
+        {
+          "name": "Statistiques Annuelles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rapports/statistiques-annuelles?annee=2026",
+              "host": ["{{base_url}}"],
+              "path": ["rapports", "statistiques-annuelles"],
+              "query": [
+                {"key": "annee", "value": "2026"}
+              ]
+            },
+            "description": "Statistiques annuelles des stages."
+          }
+        },
+        {
+          "name": "Export CSV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rapports/export-csv?annee=2026",
+              "host": ["{{base_url}}"],
+              "path": ["rapports", "export-csv"],
+              "query": [
+                {"key": "annee", "value": "2026"},
+                {"key": "service_id", "value": "", "disabled": true},
+                {"key": "statut", "value": "", "disabled": true}
+              ]
+            },
+            "description": "Export CSV des stages."
+          }
+        },
+        {
+          "name": "Stages Acceptés",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rapports/stages-acceptes?annee=2026",
+              "host": ["{{base_url}}"],
+              "path": ["rapports", "stages-acceptes"],
+              "query": [
+                {"key": "annee", "value": "2026"}
+              ]
+            },
+            "description": "Liste des stages acceptés."
+          }
+        },
+        {
+          "name": "Stages Refusés",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rapports/stages-refuses?annee=2026",
+              "host": ["{{base_url}}"],
+              "path": ["rapports", "stages-refuses"],
+              "query": [
+                {"key": "annee", "value": "2026"}
+              ]
+            },
+            "description": "Liste des stages refusés avec motifs."
+          }
+        },
+        {
+          "name": "Rapport par Service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rapports/rapport-services?annee=2026",
+              "host": ["{{base_url}}"],
+              "path": ["rapports", "rapport-services"],
+              "query": [
+                {"key": "annee", "value": "2026"}
+              ]
+            },
+            "description": "Rapport détaillé par service."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seed (Test Data)",
+      "description": "Génération de données de test (DSI uniquement)",
+      "item": [
+        {
+          "name": "Generate Test Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Data generated successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log(\"Generated:\");",
+                  "    console.log(\"- Services: \" + jsonData.statistics.services);",
+                  "    console.log(\"- Etudiants: \" + jsonData.statistics.etudiants);",
+                  "    console.log(\"- Stages: \" + jsonData.statistics.stages);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/seed/generate?nb_etudiants=30&nb_stages=50",
+              "host": ["{{base_url}}"],
+              "path": ["seed", "generate"],
+              "query": [
+                {"key": "nb_etudiants", "value": "30"},
+                {"key": "nb_stages", "value": "50"}
+              ]
+            },
+            "description": "Génère un jeu de données de test complet.\n\n**Accès**: DSI uniquement\n\nCrée: services, établissements, enseignants, utilisateurs de test, étudiants, stages, présences."
+          }
+        },
+        {
+          "name": "Get Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/seed/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["seed", "statistics"]
+            },
+            "description": "Statistiques actuelles de la base de données."
+          }
+        },
+        {
+          "name": "Reset Test Data",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/seed/reset?confirm=true",
+              "host": ["{{base_url}}"],
+              "path": ["seed", "reset"],
+              "query": [
+                {"key": "confirm", "value": "true"}
+              ]
+            },
+            "description": "**ATTENTION**: Supprime toutes les données de test.\n\nConserve: Services, Établissements, Utilisateurs\nSupprime: Présences, Documents, Stages, Étudiants, Enseignants"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "description": "Vérification de l'état du serveur",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"API is healthy\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Status is healthy\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"healthy\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_root}}/health",
+              "host": ["{{base_url_root}}"],
+              "path": ["health"]
+            },
+            "description": "Vérification de l'état de l'API (sans authentification)."
+          }
+        },
+        {
+          "name": "API Info",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_root}}/",
+              "host": ["{{base_url_root}}"],
+              "path": [""]
+            },
+            "description": "Informations sur l'API."
+          }
+        }
+      ]
+    }
+  ]
+}

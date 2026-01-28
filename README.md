@@ -330,6 +330,55 @@ Suivi quotidien : PRESENT, ABSENT, ABSENT_JUSTIFIE, NON_RENSEIGNE
 
 Documentation API complète : `http://localhost:8080/docs`
 
+## Collection Postman
+
+Une collection Postman complète est disponible dans le dossier `postman/`.
+
+### Import dans Postman
+
+1. Ouvrir Postman
+2. Cliquer sur **Import**
+3. Importer les deux fichiers :
+   - `postman/GIS-Stage.postman_collection.json` (Collection)
+   - `postman/GIS-Stage.postman_environment.json` (Environnement)
+4. Sélectionner l'environnement **GIS-Stage Environment** (coin supérieur droit)
+5. Configurer les variables d'environnement :
+   - `username` : Nom d'utilisateur
+   - `password` : Mot de passe
+
+### Variables d'environnement
+
+| Variable | Description | Valeur par défaut |
+|----------|-------------|-------------------|
+| `base_url` | URL de l'API | `http://localhost:8080/api` |
+| `username` | Nom d'utilisateur | `admin` |
+| `password` | Mot de passe | (à configurer) |
+| `access_token` | Token JWT (auto-rempli) | - |
+| `refresh_token` | Token refresh (auto-rempli) | - |
+| `stage_id` | ID du stage courant | `1` |
+| `etudiant_id` | ID de l'étudiant courant | `1` |
+| `service_id` | ID du service courant | `1` |
+| `etablissement_id` | ID de l'établissement | `1` |
+
+### Utilisation
+
+1. Exécuter **Auth > Login** pour obtenir un token (automatiquement sauvegardé)
+2. Les autres requêtes utilisent automatiquement le token
+3. Les IDs sont automatiquement sauvegardés après création d'entités
+
+### Endpoints inclus
+
+- **Auth** : Login, Refresh, Me, Logout
+- **Stages** : CRUD complet, changement de statut, calendrier
+- **Étudiants** : CRUD complet, recherche par code EGIS
+- **Documents** : Upload, download, validation
+- **Présences** : Création, mise à jour, bulk update
+- **Services** : Liste, détail
+- **Établissements** : Liste, détail
+- **Rapports** : Statistiques, export CSV
+- **Seed** : Génération de données de test
+- **Health** : Vérification de l'état de l'API
+
 ## Génération de Données de Test
 
 L'API inclut des endpoints pour générer un jeu de données de test complet, utile pour les démonstrations et les tests.
