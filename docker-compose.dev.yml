@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: gis-stage-db
+    environment:
+      POSTGRES_USER: gis_user
+      POSTGRES_PASSWORD: gis_password
+      POSTGRES_DB: gis_stage
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gis_user -d gis_stage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gis-stage-backend
+    environment:
+      - APP_ENV=development
+      - APP_PORT=8080
+      - DATABASE_URL=postgresql://gis_user:gis_password@db:5432/gis_stage
+      - JWT_SECRET_KEY=dev-secret-key-change-in-production
+      - UPLOAD_DIR=/data/uploads
+      - CORS_ORIGINS=["http://localhost:3092","http://127.0.0.1:3092"]
+    volumes:
+      - ./backend:/app
+      - uploads_data:/data/uploads
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+
+volumes:
+  postgres_data:
+  uploads_data:
